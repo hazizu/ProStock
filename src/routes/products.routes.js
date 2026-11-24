@@ -12,7 +12,9 @@ router.use(authenticate);
 // GET /api/products
 router.get("/", async (req, res) => {
   try {
-    const products = await Product.find().sort({ createdAt: -1 });
+    const products = await Product.find()
+    .populate("category","name")
+    .sort({ createdAt: -1 });
     return res.json(products);
   } catch (error) {
     console.error(error);
@@ -32,7 +34,8 @@ router.get("/:id", async (req, res) => {
       });
     }
 
-    const product = await Product.findById(req.params.id);
+    const product = await Product.findById(req.params.id).populate("category", "name")
+
 
     if (!product) {
       return res.status(404).json({
@@ -93,6 +96,7 @@ router.post("/", async (req, res) => {
       quantity: quantity ?? 0,
       minimumStock: minimumStock ?? 5,
     });
+    await product.populate("category", "name")
 
     return res.status(201).json(product);
   } catch (error) {
@@ -162,6 +166,7 @@ router.patch("/:id", async (req, res) => {
       { $set: safeUpdates },
       { new: true, runValidators: true }
     );
+    await product.populate("category", "name")
 
     if (!product) {
       return res.status(404).json({
